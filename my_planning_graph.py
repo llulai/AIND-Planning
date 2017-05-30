@@ -1,6 +1,6 @@
 from aimacode.planning import Action
 from aimacode.search import Problem
-from aimacode.utils import expr
+from aimacode.utils import Expr
 from lp_utils import decode_state
 
 
@@ -48,21 +48,21 @@ class PgNode_s(PgNode):
     Args:
     ----------
     symbol : str
-        A string representing a literal expression from a planning problem
+        A string representing a literal Expression from a planning problem
         domain.
 
     is_pos : bool
-        Boolean flag indicating whether the literal expression is positive or
+        Boolean flag indicating whether the literal Expression is positive or
         negative.
     """
 
     def __init__(self, symbol: str, is_pos: bool):
         """S-level Planning Graph node constructor
 
-        :param symbol: expr
+        :param symbol: Expr
         :param is_pos: bool
         Instance variables calculated:
-            literal: expr
+            literal: Expr
                     fluent in its literal form including negative operator if applicable
         Instance variables inherited from PgNode:
             parents: set of nodes connected to this node in previous A level; initially empty
@@ -200,7 +200,7 @@ def mutexify(node1: PgNode, node2: PgNode):
 class PlanningGraph():
     """
     A planning graph as described in chapter 10 of the AIMA text. The planning
-    graph can be used to reason about 
+    graph can be used to reason about
     """
 
     def __init__(self, problem: Problem, state: str, serial_planning=True):
@@ -228,15 +228,15 @@ class PlanningGraph():
 
         "No-Op" actions are virtual actions (i.e., actions that only exist in
         the planning graph, not in the planning problem domain) that operate
-        on each fluent (literal expression) from the problem domain. No op
-        actions "pass through" the literal expressions from one level of the
+        on each fluent (literal Expression) from the problem domain. No op
+        actions "pass through" the literal Expressions from one level of the
         planning graph to the next.
 
         The no-op action list requires both a positive and a negative action
-        for each literal expression. Positive no-op actions require the literal
-        as a positive precondition and add the literal expression as an effect
+        for each literal Expression. Positive no-op actions require the literal
+        as a positive precondition and add the literal Expression as an effect
         in the output, and negative no-op actions require the literal as a
-        negative precondition and remove the literal expression as an effect in
+        negative precondition and remove the literal Expression as an effect in
         the output.
 
         This function should only be called by the class constructor.
@@ -246,9 +246,9 @@ class PlanningGraph():
         """
         action_list = []
         for fluent in literal_list:
-            act1 = Action(expr("Noop_pos({})".format(fluent)), ([fluent], []), ([fluent], []))
+            act1 = Action(Expr("Noop_pos({})".format(fluent)), ([fluent], []), ([fluent], []))
             action_list.append(act1)
-            act2 = Action(expr("Noop_neg({})".format(fluent)), ([], [fluent]), ([], [fluent]))
+            act2 = Action(Expr("Noop_neg({})".format(fluent)), ([], [fluent]), ([], [fluent]))
             action_list.append(act2)
         return action_list
 
@@ -341,10 +341,9 @@ class PlanningGraph():
 
         for action in self.a_levels[level - 1]:
             for eff_node in action.effnodes:
-                pg_node = PgNode_s(eff_node.symbol, eff_node.is_pos)
-                pg_node.parents.add(action)
-                action.children.add(pg_node)
-                self.s_levels[level].add(pg_node)
+                eff_node.parents.add(action)
+                action.children.add(eff_node)
+                self.s_levels[level].add(eff_node)
 
     def update_a_mutex(self, nodeset):
         """ Determine and update sibling mutual exclusion for A-level nodes
@@ -407,7 +406,7 @@ class PlanningGraph():
 
     def interference_mutex(self, node_a1: PgNode_a, node_a2: PgNode_a) -> bool:
         """
-        Test a pair of actions for mutual exclusion, returning True if the 
+        Test a pair of actions for mutual exclusion, returning True if the
         effect of one action is the negation of a precondition of the other.
 
         HINT: The Action instance associated with an action node is accessible
@@ -460,7 +459,7 @@ class PlanningGraph():
         one node is the negation of the other, and False otherwise.
 
         HINT: Look at the PgNode_s.__eq__ defines the notion of equivalence for
-        literal expression nodes, and the class tracks whether the literal is
+        literal Expression nodes, and the class tracks whether the literal is
         positive or negative.
 
         :param node_s1: PgNode_s
